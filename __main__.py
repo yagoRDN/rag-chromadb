@@ -66,7 +66,7 @@ def hydrate_chromadb(client, vector_index_id):
     )
     return collection
 	
-def proximity_search(question, emb, vector_properties):
+def proximity_search(question, emb, vector_index_properties, chroma_collection):
     
     query_vectors = emb.embed_query(question)
     query_result = chroma_collection.query(
@@ -134,7 +134,7 @@ __grounding__"""
     chroma_collection = hydrate_chromadb(client=client, vector_index_id=vector_index_id)
 
     question = "Question: tenho um carro audi manual, como funciona o seguro para ele?"
-    grounding = proximity_search(question=question, emb=emb, vector_properties=vector_index_properties)
+    grounding = proximity_search(question=question, emb=emb, vector_index_properties=vector_index_properties, chroma_collection=chroma_collection)
     formattedQuestion = f"""<|begin_of_text|><|eot_id|><|start_header_id|>user<|end_header_id|>
 
     {question}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
