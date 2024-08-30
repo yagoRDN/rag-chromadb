@@ -4,11 +4,11 @@ from ibm_watsonx_ai.foundation_models import Model
 from ibm_watsonx_ai.client import APIClient
 from ibm_watsonx_ai.foundation_models.embeddings.sentence_transformer_embeddings import SentenceTransformerEmbeddings
 #import subprocess
-#import gzip
-#import json
+import gzip
+import json
 import chromadb
-#import random
-#import string
+import random
+import string
 
 
 
