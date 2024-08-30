@@ -117,7 +117,7 @@ __grounding__"""
     model = Model(
 	model_id = model_id,
 	params = parameters,
-	credentials = get_credentials(),
+	credentials = get_credentials(api_key=os.getenv("API_KEY")),
 	project_id = project_id,
 	#space_id = space_id
 	)
