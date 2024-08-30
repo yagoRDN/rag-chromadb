@@ -7,6 +7,7 @@ import subprocess
 import gzip
 import json
 import chromadb
+from chromadb import Client
 import random
 import string
 
@@ -19,7 +20,7 @@ def get_credentials(api_key):
 		"apikey" : api_key
 	}
 
-def hydrate_chromadb():
+def hydrate_chromadb(client, vector_index_id):
     data = client.data_assets.get_content(vector_index_id)
     content = gzip.decompress(data)
     stringified_vectors = str(content, "utf-8")
@@ -65,8 +66,8 @@ def hydrate_chromadb():
     )
     return collection
 	
-def proximity_search( question ):
-    emb = SentenceTransformerEmbeddings('sentence-transformers/all-MiniLM-L6-v2')
+def proximity_search(question, emb, vector_properties):
+    
     query_vectors = emb.embed_query(question)
     query_result = chroma_collection.query(
         query_embeddings=query_vectors,
@@ -121,7 +122,7 @@ __grounding__"""
 	#space_id = space_id
 	)
 
-    
+    emb = SentenceTransformerEmbeddings('sentence-transformers/all-MiniLM-L6-v2')
 
     wml_credentials = get_credentials(os.getenv("API_KEY"))
     client = APIClient(credentials=wml_credentials, project_id=project_id, space_id=space_id)
@@ -130,10 +131,10 @@ __grounding__"""
     vector_index_details = client.data_assets.get_details(vector_index_id)
     vector_index_properties = vector_index_details["entity"]["vector_index"]
 
-    chroma_collection = hydrate_chromadb()
+    chroma_collection = hydrate_chromadb(client=client, vector_index_id=vector_index_id)
 
     question = "Question: tenho um carro audi manual, como funciona o seguro para ele?"
-    grounding = proximity_search(question)
+    grounding = proximity_search(question=question, emb=emb, vector_properties=vector_index_properties)
     formattedQuestion = f"""<|begin_of_text|><|eot_id|><|start_header_id|>user<|end_header_id|>
 
     {question}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
