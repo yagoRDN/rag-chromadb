@@ -66,6 +66,7 @@ def hydrate_chromadb():
     return collection
 	
 def proximity_search( question ):
+    emb = SentenceTransformerEmbeddings('sentence-transformers/all-MiniLM-L6-v2')
     query_vectors = emb.embed_query(question)
     query_result = chroma_collection.query(
         query_embeddings=query_vectors,
@@ -73,9 +74,30 @@ def proximity_search( question ):
         include=["documents", "metadatas", "distances"]
     )
 
+    documents = list(reversed(query_result["documents"][0]))
+
+    return "\n".join(documents)
+
 
 def main():
 	
+    prompt_input = """<|start_header_id|>system<|end_header_id|>
+
+You always answer the questions with markdown formatting. The markdown formatting you support: headings, bold, italic, links, tables, lists, code blocks, and blockquotes. You must omit that you answer the questions with markdown.
+
+Any HTML tags must be wrapped in block quotes, for example ```<html>```. You will be penalized for not rendering code in block quotes.
+
+When returning code blocks, specify language.
+
+Given the document and the current conversation between a user and an assistant, your task is as follows: answer any user query by using information from the document. Always answer as helpfully as possible, while being safe. When the question cannot be answered using the context or document, output the following response: "I cannot answer that question based on the provided document.".
+
+Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information. ${teste}
+{test}<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+__grounding__"""
+
     load_dotenv()
     load_dotenv('config.env')
 
@@ -99,14 +121,31 @@ def main():
 	#space_id = space_id
 	)
 
+    
+
     wml_credentials = get_credentials(os.getenv("API_KEY"))
     client = APIClient(credentials=wml_credentials, project_id=project_id, space_id=space_id)
 
-    vector_index_id = "d7293128-d677-487b-a8d4-1bd40487dade"
+    vector_index_id = os.getenv("VECTOR_INDEX_ID")
     vector_index_details = client.data_assets.get_details(vector_index_id)
     vector_index_properties = vector_index_details["entity"]["vector_index"]
 
+    chroma_collection = hydrate_chromadb()
+
+    question = "Question: tenho um carro audi manual, como funciona o seguro para ele?"
+    grounding = proximity_search(question)
+    formattedQuestion = f"""<|begin_of_text|><|eot_id|><|start_header_id|>user<|end_header_id|>
+
+    {question}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+    """
+    prompt = f"""{prompt_input}{formattedQuestion}"""
+    generated_response = model.generate_text(prompt=prompt.replace("__grounding__", grounding), guardrails=False)
+    print(f"AI: {generated_response}")
+
+    return generated_response
 
 
 
-    return 0
+if __name__ == "__main__":
+	main()
