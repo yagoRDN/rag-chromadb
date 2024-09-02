@@ -1,0 +1,9 @@
+nvidia-cudnn-cu12==9.3.0.75
+nvidia-cuda-nvrtc-cu11==11.8.89
+./chromadb-0.5.5-py3-none-any.whl
+python-dotenv==1.0.1
+requests==2.32.0
+pydantic==2.8.2
+./sentence_transformers-3.0.1-py3-none-any.whl
+ibm_watsonx_ai==1.1.7
+torch==2.4.0
